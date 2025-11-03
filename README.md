@@ -66,6 +66,19 @@ The tests instantiate the Flask app, hit key routes, and validate RSS/Sitemap re
 - TinyMCE loads from its CDN. If deploying to a restricted network, host the asset internally or allowlist the domain.
 - Replace placeholder logos and imagery under `static/img/` with brand-specific assets.
 
+### Deploying the public site to Netlify
+
+Netlify’s CDN only serves static files, so this repository includes a lightweight exporter that renders the Flask routes into HTML during the build.
+
+1. Confirm `BASE_URL` in `.env` points at your Netlify URL (for example `https://grandriveranalytics.netlify.app`).
+2. Commit `netlify.toml` and `build_static.py` (already present in this repo).
+3. Connect the repository in Netlify. The dashboard will read the build settings from `netlify.toml`:
+   - **Build command:** `pip install -r requirements.txt && python build_static.py`
+   - **Publish directory:** `netlify_build`
+4. Deploy. The generated site includes all public pages, RSS, sitemap, robots.txt, and post detail pages. The contact form is configured with `data-netlify` so submissions continue to work via Netlify Forms.
+
+> **Note:** The publishing/admin interface requires the live Flask application and a writable database. On Netlify the `/admin` routes are redirected to a notice explaining that admin editing is unavailable on the static build. Host the dynamic app on infrastructure that supports Python (Render, Fly.io, Railway, etc.) when you need authoring capabilities.
+
 ## Project structure
 
 ```

@@ -334,6 +334,25 @@ def register_routes(app: Flask) -> None:
             success=success,
         )
 
+    @app.route("/admin-unavailable/")
+    def admin_unavailable() -> str:
+        settings = get_settings()
+        canonical = f"{settings['base_url']}/admin-unavailable/"
+        meta = seo.build_meta(
+            title=f"Admin Offline · {settings['site_name']}",
+            description="The static Netlify deployment exposes only the public site. Run the Flask app on Python-capable hosting to edit posts.",
+            canonical=canonical,
+        )
+        breadcrumbs = seo.jsonld_breadcrumbs(
+            settings["base_url"], [("Home", "/"), ("Admin", "/admin-unavailable/")]
+        )
+        return render_template(
+            "admin_unavailable.html",
+            meta=meta,
+            breadcrumbs=breadcrumbs,
+            website_json=seo.jsonld_website_search(settings["base_url"]),
+        )
+
     @app.route("/rss.xml")
     def rss_feed() -> Response:
         settings = get_settings()
