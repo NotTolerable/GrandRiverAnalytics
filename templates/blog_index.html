@@ -6,28 +6,10 @@
 {% if website_json %}<script type="application/ld+json">{{ website_json|tojson }}</script>{% endif %}
 {% endblock %}
 {% block content %}
-<section class="page-hero blog-hero">
-    <div class="container">
-        <span class="pill">Research library</span>
-        <h1>Insight archive</h1>
-        <p>Deep-dive company write-ups, sector primers, and real-time scenario work from the Grand River Analytics desk.</p>
-        <div class="hero-actions">
-            <a class="button primary" href="{{ url_for('rss_feed') }}">Subscribe to RSS</a>
-            <a class="button ghost" href="{{ url_for('contact') }}">Request briefing access</a>
-        </div>
-    </div>
-</section>
-<section class="container section blog-shell">
-    <div class="blog-controls" role="search">
-        <label for="search" class="visually-hidden">Filter posts</label>
-        <input id="search" type="search" placeholder="Search company, theme, or ticker" data-search-input />
-        <div class="blog-tag-list" aria-label="Filter by tag">
-            {% for tag in all_tags %}
-            <button class="tag" type="button" data-tag-filter="{{ tag }}">{{ tag }}</button>
-            {% else %}
-            <span class="muted">Tags coming soon.</span>
-            {% endfor %}
-        </div>
+<section class="container section">
+    <div class="section-heading">
+        <h1>Stock write-ups and sector notes</h1>
+        <p class="muted">Independent coverage of financials, technology, energy, and consumer bellwethers.</p>
     </div>
     <div class="blog-layout">
         {% set placeholder_cover = url_for('static', filename='img/blog-placeholder.svg') %}
@@ -55,7 +37,7 @@
                                 {% endfor %}
                             </p>
                             <p>{{ post.excerpt }}</p>
-                            <a class="read-link" href="{{ url_for('post_detail', slug=post.slug) }}">Open insight →</a>
+                            <a class="read-link" href="{{ url_for('post_detail', slug=post.slug) }}">Read insight →</a>
                         </div>
                     </article>
                 {% endfor %}
@@ -63,15 +45,20 @@
                 <p>No posts yet.</p>
             {% endif %}
         </div>
-        <aside class="blog-sidebar" aria-label="Research resources">
+        <aside class="blog-sidebar" aria-label="Blog filters">
             <div class="sidebar-card">
-                <h3>Research cadence</h3>
-                <p class="muted">We release flagship notes weekly, with flash updates around earnings, policy shifts, and corporate events.</p>
+                <label for="search">Search posts</label>
+                <input id="search" type="search" placeholder="Filter by keyword" data-search-input />
             </div>
             <div class="sidebar-card">
-                <h3>Need a custom take?</h3>
-                <p>Contact our analysts for bespoke deep dives, KPI trackers, and executive briefing sessions.</p>
-                <a class="read-link" href="{{ url_for('contact') }}">Connect with us →</a>
+                <h3>Tags</h3>
+                <div class="tag-cloud">
+                    {% for tag in all_tags %}
+                    <button class="tag" type="button" data-tag-filter="{{ tag }}">{{ tag }}</button>
+                    {% else %}
+                    <p class="muted">Tags coming soon.</p>
+                    {% endfor %}
+                </div>
             </div>
         </aside>
     </div>
