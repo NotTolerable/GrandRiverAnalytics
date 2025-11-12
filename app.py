@@ -184,9 +184,8 @@ def register_routes(app: Flask) -> None:
             website_json=website_json,
         )
 
-    @app.route("/blog")
-    def blog_index() -> str:
-        page = max(1, int(request.args.get("page", 1)))
+    def _render_blog_index(page: int) -> str:
+        page = max(1, page)
         per_page = 10
         offset = (page - 1) * per_page
         posts = [
@@ -207,7 +206,7 @@ def register_routes(app: Flask) -> None:
         settings = get_settings()
         canonical = f"{settings['base_url']}/blog"
         if page > 1:
-            canonical += f"?page={page}"
+            canonical = f"{settings['base_url']}/blog/page/{page}/"
         meta = seo.build_meta(
             title=f"Blog · {settings['site_name']}",
             description="Stock write-ups and sector notes from Grand River Analytics.",
@@ -221,8 +220,10 @@ def register_routes(app: Flask) -> None:
                     all_tags.add(tag)
         breadcrumbs = seo.jsonld_breadcrumbs(settings["base_url"], [("Home", "/"), ("Blog", "/blog")])
         website_json = seo.jsonld_website_search(settings["base_url"])
-        prev_url = url_for("blog_index", page=page - 1) if page > 1 else None
-        next_url = url_for("blog_index", page=page + 1) if page < total_pages else None
+        prev_url = None
+        if page > 1:
+            prev_url = url_for("blog_index") if page == 2 else url_for("blog_index_page", page=page - 1)
+        next_url = url_for("blog_index_page", page=page + 1) if page < total_pages else None
         return render_template(
             "blog_index.html",
             posts=posts,
@@ -235,6 +236,18 @@ def register_routes(app: Flask) -> None:
             prev_url=prev_url,
             next_url=next_url,
         )
+
+    @app.route("/blog")
+    def blog_index() -> str:
+        try:
+            page_value = int(request.args.get("page", 1))
+        except (TypeError, ValueError):
+            page_value = 1
+        return _render_blog_index(page_value)
+
+    @app.route("/blog/page/<int:page>/")
+    def blog_index_page(page: int) -> str:
+        return _render_blog_index(page)
 
     @app.route("/post/<slug>")
     def post_detail(slug: str) -> str:

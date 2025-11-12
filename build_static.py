@@ -4,7 +4,6 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from urllib.parse import parse_qs, urlencode
 
 from flask import Response
 
@@ -61,7 +60,7 @@ def export_routes() -> None:
         page_size = 10
         total_pages = (total_posts + page_size - 1) // page_size
         for page in range(2, total_pages + 1):
-            routes.append(f"/blog?{urlencode({'page': page})}")
+            routes.append(f"/blog/page/{page}/")
 
         for slug in post_slugs:
             routes.append(f"/post/{slug}")
@@ -71,11 +70,7 @@ def export_routes() -> None:
             if response.status_code >= 400:
                 raise RuntimeError(f"Failed to render {route}: {response.status_code}")
 
-            if route.startswith("/blog?"):
-                query = parse_qs(route.partition("?")[2])
-                page = query.get("page", ["1"])[0]
-                target = f"/blog/page/{page}/"
-            elif route.startswith("/post/"):
+            if route.startswith("/post/"):
                 target = f"{route}/"
             else:
                 if route.endswith(".xml") or route.endswith(".txt"):
