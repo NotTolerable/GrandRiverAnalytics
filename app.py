@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import os
 import re
@@ -78,15 +79,38 @@ def get_settings() -> dict[str, Any]:
     return settings
 
 
+def resolve_tinymce_assets() -> tuple[str, str]:
+    script_override = os.getenv("TINYMCE_SCRIPT_URL", "").strip()
+    raw_key = os.getenv("TINYMCE_API_KEY", "").strip()
+    api_key = ""
+    if raw_key:
+        if raw_key.startswith("{"):
+            try:
+                parsed = json.loads(raw_key)
+            except json.JSONDecodeError:
+                api_key = raw_key
+            else:
+                for candidate in ("apiKey", "api_key", "key", "n"):
+                    value = parsed.get(candidate)
+                    if isinstance(value, str) and value.strip():
+                        api_key = value.strip()
+                        break
+                if not api_key:
+                    api_key = raw_key
+        else:
+            api_key = raw_key
+    if script_override:
+        return script_override, api_key
+    if api_key:
+        return f"https://cdn.tiny.cloud/1/{api_key}/tinymce/6/tinymce.min.js", api_key
+    return "https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js", api_key
+
+
 def register_context_processors(app: Flask) -> None:
     @app.context_processor
     def inject_globals() -> dict[str, Any]:
         settings = get_settings()
-        tinymce_api_key = os.getenv("TINYMCE_API_KEY", "").strip()
-        if tinymce_api_key:
-            tinymce_script = f"https://cdn.tiny.cloud/1/{tinymce_api_key}/tinymce/6/tinymce.min.js"
-        else:
-            tinymce_script = "https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"
+        tinymce_script, tinymce_api_key = resolve_tinymce_assets()
         return {
             "settings": settings,
             "current_year": datetime.utcnow().year,
@@ -94,6 +118,7 @@ def register_context_processors(app: Flask) -> None:
             "csrf_token": generate_csrf_token,
             "nav_active": lambda name: "aria-current=\"page\"" if request.endpoint == name else "",
             "tinymce_script_url": tinymce_script,
+            "tinymce_api_key": tinymce_api_key,
         }
 
 

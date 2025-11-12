@@ -74,7 +74,7 @@ The tests instantiate the Flask app, hit key routes, and validate RSS/Sitemap re
 - SQLite is used by default for simplicity. To switch to another backend (e.g., MySQL), update `DATABASE` to point at your DSN and adjust the connection logic inside `utils/db.py` accordingly.
 - Static assets live under `static/` and can be served by your front-end proxy/CDN.
 - For Replit, ensure the Run button executes `python app.py` (the default in this repo).
-- TinyMCE loads from its CDN. Provide a `TINYMCE_API_KEY` (from your Tiny Cloud account) to use the official CDN, or leave it blank to fall back to the open-source jsDelivr mirror bundled in the templates.
+- TinyMCE loads from its CDN. Provide a `TINYMCE_API_KEY` (string or JSON web key) to use the official Tiny Cloud script, or leave it blank to fall back to the open-source jsDelivr mirror. You can also point to a fully self-hosted bundle with `TINYMCE_SCRIPT_URL`.
 - Replace placeholder logos and imagery under `static/img/` with brand-specific assets.
 
 ### Deploying on Render (dynamic hosting)
@@ -83,7 +83,7 @@ Render’s Python services provide the always-on environment needed for the admi
 
 1. Commit the included `render.yaml` blueprint (already present in this repository).
 2. Create a new **Blueprint** on Render pointing at the GitHub repository. Render will read `render.yaml` and provision a free web service.
-3. During setup, supply environment variables for `SECRET_KEY`, `ADMIN_PASSWORD`, and update `BASE_URL` to your Render domain (e.g., `https://grand-river-analytics.onrender.com`). Add `TINYMCE_API_KEY` if you want to load the editor from Tiny Cloud instead of the jsDelivr fallback.
+3. During setup, supply environment variables for `SECRET_KEY`, `ADMIN_PASSWORD`, and update `BASE_URL` to your Render domain (e.g., `https://grand-river-analytics.onrender.com`). Add `TINYMCE_API_KEY` (plain string or Tiny-provided JSON key) if you want to load the editor from Tiny Cloud, or set `TINYMCE_SCRIPT_URL` to a custom bundle.
 4. Deploy. Render runs `pip install -r requirements.txt` and launches the site via `gunicorn app:app` (matching the provided `Procfile`).
 5. Run `render deploy`/auto-deploy on pushes. SQLite persists inside the Render disk for the service; for multi-instance scaling consider moving to a managed database.
 

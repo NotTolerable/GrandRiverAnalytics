@@ -33,27 +33,34 @@
         </ul>
         {% endif %}
     </header>
+    {% if post.cover_url %}
     {% set placeholder_cover = url_for('static', filename='img/blog-placeholder.svg') %}
-    {% set cover = post.cover_url or placeholder_cover %}
-    <figure class="article-cover" data-fallback-container data-placeholder-label="Cover image for {{ post.title }}" {% if not post.cover_url %}role="img" aria-label="Illustrative cover for {{ post.title }}"{% endif %}>
+    <figure class="article-cover" data-fallback-container data-placeholder-label="Cover image for {{ post.title }}">
         <span class="media-fallback" aria-hidden="true">{{ post.title[0] }}</span>
-        <img src="{{ cover }}" alt="Cover image for {{ post.title }}" loading="lazy" data-fallback-image data-default-cover="{{ placeholder_cover }}" />
+        <img src="{{ post.cover_url }}" alt="Cover image for {{ post.title }}" loading="lazy" data-fallback-image data-default-cover="{{ placeholder_cover }}" />
     </figure>
-    {% if post.highlight_quote %}
-    <blockquote class="article-quote">{{ post.highlight_quote }}</blockquote>
     {% endif %}
-    <aside class="toc" aria-label="Table of contents">
-        <h2>On this page</h2>
-        <nav id="toc"></nav>
-    </aside>
-    <div class="article-body" data-article-content>
-        {{ post.content|safe }}
+    <div class="article-layout">
+        <div class="article-main">
+            {% if post.highlight_quote %}
+            <blockquote class="article-quote">{{ post.highlight_quote }}</blockquote>
+            {% endif %}
+            <div class="article-body" data-article-content>
+                {{ post.content|safe }}
+            </div>
+            {% if post.cta_label and post.cta_url %}
+            <div class="article-cta">
+                <a class="button primary" href="{{ post.cta_url }}" target="_blank" rel="noopener">{{ post.cta_label }}</a>
+            </div>
+            {% endif %}
+        </div>
+        <aside class="article-aside" aria-label="Table of contents">
+            <div class="toc">
+                <h2>On this page</h2>
+                <nav id="toc"></nav>
+            </div>
+        </aside>
     </div>
-    {% if post.cta_label and post.cta_url %}
-    <div class="article-cta">
-        <a class="button primary" href="{{ post.cta_url }}" target="_blank" rel="noopener">{{ post.cta_label }}</a>
-    </div>
-    {% endif %}
 </article>
 <section class="container section more-posts">
     <h2>More from the blog</h2>
