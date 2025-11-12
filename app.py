@@ -82,12 +82,18 @@ def register_context_processors(app: Flask) -> None:
     @app.context_processor
     def inject_globals() -> dict[str, Any]:
         settings = get_settings()
+        tinymce_api_key = os.getenv("TINYMCE_API_KEY", "").strip()
+        if tinymce_api_key:
+            tinymce_script = f"https://cdn.tiny.cloud/1/{tinymce_api_key}/tinymce/6/tinymce.min.js"
+        else:
+            tinymce_script = "https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js"
         return {
             "settings": settings,
             "current_year": datetime.utcnow().year,
             "base_url": settings.get("base_url", app.config["BASE_URL"]),
             "csrf_token": generate_csrf_token,
             "nav_active": lambda name: "aria-current=\"page\"" if request.endpoint == name else "",
+            "tinymce_script_url": tinymce_script,
         }
 
 
@@ -481,12 +487,26 @@ def register_routes(app: Flask) -> None:
                 "SELECT * FROM posts ORDER BY COALESCE(publish_date, created_at) DESC"
             )
         ]
+        count_row = query_one(
+            """
+            SELECT
+                SUM(CASE WHEN published = 1 THEN 1 ELSE 0 END) AS published,
+                SUM(CASE WHEN published = 0 THEN 1 ELSE 0 END) AS draft,
+                SUM(CASE WHEN featured = 1 THEN 1 ELSE 0 END) AS featured
+            FROM posts
+            """
+        )
+        stats = {
+            "published": (count_row["published"] if count_row and count_row["published"] else 0),
+            "draft": (count_row["draft"] if count_row and count_row["draft"] else 0),
+            "featured": (count_row["featured"] if count_row and count_row["featured"] else 0),
+        }
         meta = seo.build_meta(
             title="Admin Dashboard",
             description="Manage research posts.",
             canonical=f"{get_settings()['base_url']}/admin",
         )
-        return render_template("admin_dashboard.html", posts=posts, meta=meta)
+        return render_template("admin_dashboard.html", posts=posts, meta=meta, stats=stats)
 
     @app.route("/admin/new", methods=["GET", "POST"])
     @login_required

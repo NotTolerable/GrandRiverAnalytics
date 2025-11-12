@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head_extra %}
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="{{ tinymce_script_url }}" referrerpolicy="origin"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         tinymce.init({
@@ -31,23 +31,47 @@
     });
 </script>
 {% endblock %}
+{% block body_class %}admin-shell{% endblock %}
 {% block content %}
-<section class="container section admin-editor">
-    <div class="editor-header">
-        <div>
-            <h1>{% if post %}Edit post{% else %}New post{% endif %}</h1>
-            <p class="muted">Craft your research narrative, drop in charts inline, and publish with a single workflow.</p>
+<section class="admin-hero">
+    <div class="container">
+        <div class="admin-hero__inner">
+            <div>
+                <p class="eyebrow">Editorial workspace</p>
+                <h1>{% if post %}Edit report{% else %}New report{% endif %}</h1>
+                <p class="muted">Enrich your research with inline charts, highlight pull quotes, and orchestrate publish timing.</p>
+            </div>
+            {% if post %}
+            <div class="hero-actions">
+                <a class="button ghost" href="{{ url_for('admin_preview', post_id=post.id) }}" target="_blank" rel="noopener">Open preview</a>
+                <a class="button" href="{{ url_for('post_detail', slug=post.slug) }}" target="_blank" rel="noopener">View live</a>
+            </div>
+            {% endif %}
         </div>
-        {% if post %}
-        <a class="button ghost" href="{{ url_for('admin_preview', post_id=post.id) }}" target="_blank" rel="noopener">Open preview</a>
-        {% endif %}
+        <dl class="admin-metrics compact">
+            <div>
+                <dt>Status</dt>
+                <dd>{% if post and post.published %}Published{% else %}Draft{% endif %}</dd>
+            </div>
+            <div>
+                <dt>Last updated</dt>
+                <dd>{% if post %}{{ post.updated_at|format_date }}{% else %}—{% endif %}</dd>
+            </div>
+            <div>
+                <dt>Feature flag</dt>
+                <dd>{% if post and post.featured %}Enabled{% else %}Off{% endif %}</dd>
+            </div>
+        </dl>
     </div>
-    <form method="post" class="admin-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="form-sections">
-            <div class="form-panel">
-                <fieldset>
-                    <legend>Report basics</legend>
+</section>
+<section class="section">
+    <div class="container">
+        <form method="post" class="admin-form admin-panel admin-editor">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="form-sections">
+                <div class="form-panel">
+                    <fieldset>
+                        <legend>Report basics</legend>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="title">Title</label>
@@ -158,6 +182,7 @@
             <button type="submit" name="action" value="preview" class="button ghost">Save &amp; preview</button>
             <button type="submit" name="action" value="publish" class="button">Publish</button>
         </div>
-    </form>
+        </form>
+    </div>
 </section>
 {% endblock %}
