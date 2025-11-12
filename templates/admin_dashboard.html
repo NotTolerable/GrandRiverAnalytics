@@ -10,6 +10,7 @@
             <tr>
                 <th>Title</th>
                 <th>Status</th>
+                <th>Featured</th>
                 <th>Updated</th>
                 <th></th>
             </tr>
@@ -24,9 +25,20 @@
                 <td>
                     {% if post.published %}<span class="status status-live">Published</span>{% else %}<span class="status status-draft">Draft</span>{% endif %}
                 </td>
+                <td>
+                    {% if post.featured %}<span class="status status-featured">Yes</span>{% else %}<span class="status">No</span>{% endif %}
+                </td>
                 <td>{{ post.updated_at|format_date }}</td>
                 <td class="actions">
+                    {% if post.published %}
+                    <a href="{{ url_for('post_detail', slug=post.slug) }}" target="_blank" rel="noopener">View</a>
+                    {% endif %}
+                    <a href="{{ url_for('admin_preview', post_id=post.id) }}" target="_blank" rel="noopener">Preview</a>
                     <a href="{{ url_for('admin_edit', post_id=post.id) }}">Edit</a>
+                    <form method="post" action="{{ url_for('admin_duplicate', post_id=post.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit">Duplicate</button>
+                    </form>
                     <form method="post" action="{{ url_for('admin_delete', post_id=post.id) }}" onsubmit="return confirm('Delete this post?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <button type="submit">Delete</button>

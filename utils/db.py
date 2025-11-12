@@ -71,10 +71,20 @@ def init_db() -> None:
                 published INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
-                publish_date TEXT
+                publish_date TEXT,
+                meta_title TEXT,
+                meta_description TEXT,
+                hero_kicker TEXT,
+                hero_style TEXT,
+                highlight_quote TEXT,
+                summary_points TEXT,
+                cta_label TEXT,
+                cta_url TEXT,
+                featured INTEGER NOT NULL DEFAULT 0
             )
             """
         )
+        ensure_post_columns(db)
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS settings (
@@ -96,6 +106,27 @@ def init_db() -> None:
     seed_posts()
 
 
+def ensure_post_columns(db: sqlite3.Connection) -> None:
+    desired_columns = {
+        "meta_title": "TEXT",
+        "meta_description": "TEXT",
+        "hero_kicker": "TEXT",
+        "hero_style": "TEXT",
+        "highlight_quote": "TEXT",
+        "summary_points": "TEXT",
+        "cta_label": "TEXT",
+        "cta_url": "TEXT",
+        "featured": "INTEGER NOT NULL DEFAULT 0",
+    }
+    existing_cursor = db.execute("PRAGMA table_info(posts)")
+    existing_columns = {row[1] for row in existing_cursor.fetchall()}
+    existing_cursor.close()
+    for column, definition in desired_columns.items():
+        if column not in existing_columns:
+            db.execute(f"ALTER TABLE posts ADD COLUMN {column} {definition}")
+    db.commit()
+
+
 def seed_posts() -> None:
     existing = query_one("SELECT COUNT(*) as count FROM posts")
     if existing and existing["count"] > 0:
@@ -112,6 +143,13 @@ def seed_posts() -> None:
             "tags": "Large-Cap, Tech",
             "published": 1,
             "publish_date": "2024-01-15T12:00:00Z",
+            "hero_kicker": "Deep Dive",
+            "hero_style": "midnight",
+            "highlight_quote": "Services mix has widened Apple's defensibility, underpinning floor valuation multiples.",
+            "summary_points": "Services ARR now >$100B\nHardware elasticity contained by trade-in programs",
+            "cta_label": "Read full thesis",
+            "cta_url": "/post/aapl-services-momentum",
+            "featured": 1,
         },
         {
             "title": "JPM: NII Trajectory and Credit Normalization",
@@ -122,6 +160,9 @@ def seed_posts() -> None:
             "tags": "Large-Cap, Financials",
             "published": 1,
             "publish_date": "2024-01-22T12:00:00Z",
+            "hero_kicker": "Banking",
+            "hero_style": "slate",
+            "summary_points": "Deposit mix shifting to interest-bearing\nCredit normalization manageable vs reserves",
         },
         {
             "title": "MSFT: Copilot Monetization Pathways",
@@ -132,6 +173,8 @@ def seed_posts() -> None:
             "tags": "Large-Cap, Tech",
             "published": 1,
             "publish_date": "2024-02-01T12:00:00Z",
+            "hero_kicker": "Software",
+            "summary_points": "Copilot ARPU uplift still in early innings\nAzure AI services accelerating cloud growth",
         },
         {
             "title": "XOM: Capex Discipline vs. Price Deck",
@@ -142,6 +185,8 @@ def seed_posts() -> None:
             "tags": "Energy, Large-Cap",
             "published": 1,
             "publish_date": "2024-02-08T12:00:00Z",
+            "hero_kicker": "Energy",
+            "hero_style": "midnight",
         },
         {
             "title": "COST: Traffic Resilience and Mix",
@@ -152,14 +197,36 @@ def seed_posts() -> None:
             "tags": "Consumer, Large-Cap",
             "published": 1,
             "publish_date": "2024-02-15T12:00:00Z",
+            "hero_kicker": "Consumer",
+            "hero_style": "slate",
         },
     ]
 
     for post in posts:
         execute(
             """
-            INSERT INTO posts (title, slug, excerpt, content, cover_url, tags, published, created_at, updated_at, publish_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO posts (
+                title,
+                slug,
+                excerpt,
+                content,
+                cover_url,
+                tags,
+                published,
+                created_at,
+                updated_at,
+                publish_date,
+                meta_title,
+                meta_description,
+                hero_kicker,
+                hero_style,
+                highlight_quote,
+                summary_points,
+                cta_label,
+                cta_url,
+                featured
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 post["title"],
@@ -172,6 +239,15 @@ def seed_posts() -> None:
                 now,
                 now,
                 post["publish_date"],
+                post.get("meta_title"),
+                post.get("meta_description"),
+                post.get("hero_kicker"),
+                post.get("hero_style"),
+                post.get("highlight_quote"),
+                post.get("summary_points"),
+                post.get("cta_label"),
+                post.get("cta_url"),
+                post.get("featured", 0),
             ),
         )
 

@@ -116,10 +116,21 @@ def slugify(value: str) -> str:
     return value.strip("-")
 
 
+def normalize_hero_style(value: str | None) -> str:
+    allowed = {"light", "slate", "midnight"}
+    if not value:
+        return "light"
+    normalized = value.strip().lower()
+    return normalized if normalized in allowed else "light"
+
+
 def serialize_post(row: Any) -> dict[str, Any]:
     if isinstance(row, dict):
-        return row
-    return {key: row[key] for key in row.keys()}
+        data = dict(row)
+    else:
+        data = {key: row[key] for key in row.keys()}
+    data["hero_style"] = normalize_hero_style(data.get("hero_style"))
+    return data
 
 
 def estimate_read_time(html: str) -> int:
@@ -131,9 +142,17 @@ def estimate_read_time(html: str) -> int:
 def register_routes(app: Flask) -> None:
     @app.route("/")
     def home() -> str:
-        posts = [serialize_post(row) for row in query_all(
-            "SELECT * FROM posts WHERE published = 1 ORDER BY COALESCE(publish_date, created_at) DESC LIMIT 6"
-        )]
+        posts = [
+            serialize_post(row)
+            for row in query_all(
+                """
+                SELECT * FROM posts
+                WHERE published = 1
+                ORDER BY featured DESC, COALESCE(publish_date, created_at) DESC
+                LIMIT 6
+                """
+            )
+        ]
         settings = get_settings()
         canonical = f"{settings['base_url']}"
         meta = seo.build_meta(
@@ -221,9 +240,11 @@ def register_routes(app: Flask) -> None:
             abort(404)
         settings = get_settings()
         canonical = f"{settings['base_url']}/post/{post['slug']}"
+        meta_title = post.get("meta_title") or post["title"]
+        meta_description = post.get("meta_description") or post.get("excerpt") or settings["site_description"]
         meta = seo.build_meta(
-            title=f"{post['title']} · {settings['site_name']}",
-            description=post.get("excerpt", settings["site_description"]),
+            title=f"{meta_title} · {settings['site_name']}",
+            description=meta_description,
             canonical=canonical,
             image_url=post.get("cover_url"),
             og_type="article",
@@ -235,6 +256,8 @@ def register_routes(app: Flask) -> None:
         website_json = seo.jsonld_website_search(settings["base_url"])
         blog_json = seo.jsonld_blogposting(settings["base_url"], post, settings["site_name"], settings["site_description"])
         read_time = estimate_read_time(post.get("content", ""))
+        summary_points = [point.strip() for point in (post.get("summary_points") or "").splitlines() if point.strip()]
+        hero_style = normalize_hero_style(post.get("hero_style"))
         more_posts = [
             serialize_post(p)
             for p in query_all(
@@ -256,6 +279,9 @@ def register_routes(app: Flask) -> None:
             blog_json=blog_json,
             read_time=read_time,
             more_posts=more_posts,
+            summary_points=summary_points,
+            hero_style=hero_style,
+            preview=False,
         )
 
     @app.route("/team")
@@ -497,6 +523,125 @@ def register_routes(app: Flask) -> None:
         flash("Post deleted.", "success")
         return redirect(url_for("admin_dashboard"))
 
+    @app.route("/admin/duplicate/<int:post_id>", methods=["POST"])
+    @login_required
+    def admin_duplicate(post_id: int) -> Response:
+        row = query_one("SELECT * FROM posts WHERE id = ?", (post_id,))
+        if not row:
+            abort(404)
+        post = serialize_post(row)
+        base_slug = f"{post['slug']}-copy"
+        candidate_slug = base_slug
+        suffix = 2
+        while query_one("SELECT id FROM posts WHERE slug = ?", (candidate_slug,)):
+            candidate_slug = f"{base_slug}-{suffix}"
+            suffix += 1
+        now = datetime.utcnow().isoformat()
+        new_id = execute(
+            """
+            INSERT INTO posts (
+                title,
+                slug,
+                excerpt,
+                content,
+                cover_url,
+                tags,
+                published,
+                created_at,
+                updated_at,
+                publish_date,
+                meta_title,
+                meta_description,
+                hero_kicker,
+                hero_style,
+                highlight_quote,
+                summary_points,
+                cta_label,
+                cta_url,
+                featured
+            )
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            """,
+            (
+                f"{post['title']} (Copy)",
+                candidate_slug,
+                post.get("excerpt"),
+                post.get("content"),
+                post.get("cover_url"),
+                post.get("tags"),
+                now,
+                now,
+                post.get("publish_date") or now,
+                post.get("meta_title"),
+                post.get("meta_description"),
+                post.get("hero_kicker"),
+                post.get("hero_style"),
+                post.get("highlight_quote"),
+                post.get("summary_points"),
+                post.get("cta_label"),
+                post.get("cta_url"),
+            ),
+        )
+        flash("Draft copied.", "success")
+        return redirect(url_for("admin_edit", post_id=new_id))
+
+    @app.route("/admin/preview/<int:post_id>")
+    @login_required
+    def admin_preview(post_id: int) -> str:
+        row = query_one("SELECT * FROM posts WHERE id = ?", (post_id,))
+        if not row:
+            abort(404)
+        post = serialize_post(row)
+        settings = get_settings()
+        canonical = f"{settings['base_url']}/post/{post['slug']}"
+        meta_title = post.get("meta_title") or post["title"]
+        meta_description = post.get("meta_description") or post.get("excerpt") or settings["site_description"]
+        meta = seo.build_meta(
+            title=f"Preview · {meta_title} · {settings['site_name']}",
+            description=meta_description,
+            canonical=canonical,
+            image_url=post.get("cover_url"),
+            og_type="article",
+        )
+        breadcrumbs = seo.jsonld_breadcrumbs(
+            settings["base_url"],
+            [
+                ("Home", "/"),
+                ("Blog", "/blog"),
+                (post["title"], f"/post/{post['slug']}")
+            ],
+        )
+        website_json = seo.jsonld_website_search(settings["base_url"])
+        blog_json = seo.jsonld_blogposting(settings["base_url"], post, settings["site_name"], settings["site_description"])
+        read_time = estimate_read_time(post.get("content", ""))
+        summary_points = [point.strip() for point in (post.get("summary_points") or "").splitlines() if point.strip()]
+        hero_style = normalize_hero_style(post.get("hero_style"))
+        more_posts = [
+            serialize_post(p)
+            for p in query_all(
+                """
+                SELECT * FROM posts
+                WHERE published = 1 AND slug != ?
+                ORDER BY COALESCE(publish_date, created_at) DESC
+                LIMIT 3
+                """,
+                (post["slug"],),
+            )
+        ]
+        return render_template(
+            "post.html",
+            post=post,
+            meta=meta,
+            breadcrumbs=breadcrumbs,
+            website_json=website_json,
+            blog_json=blog_json,
+            read_time=read_time,
+            more_posts=more_posts,
+            summary_points=summary_points,
+            hero_style=hero_style,
+            preview=True,
+        )
+
     def handle_post_save(existing: dict[str, Any] | None = None):
         title = request.form.get("title", "").strip()
         slug_input = request.form.get("slug", "").strip()
@@ -504,8 +649,24 @@ def register_routes(app: Flask) -> None:
         content = request.form.get("content", "").strip()
         cover_url = request.form.get("cover_url", "").strip()
         tags = ", ".join([tag.strip() for tag in request.form.get("tags", "").split(",") if tag.strip()])
-        publish_date = request.form.get("publish_date") or datetime.utcnow().isoformat()
-        publish_state = request.form.get("action") == "publish"
+        publish_date_input = request.form.get("publish_date", "").strip()
+        if publish_date_input:
+            publish_date = publish_date_input
+        elif existing and existing.get("publish_date"):
+            publish_date = existing["publish_date"]
+        else:
+            publish_date = datetime.utcnow().isoformat()
+        action = request.form.get("action", "draft")
+        publish_state = action == "publish"
+        hero_kicker = request.form.get("hero_kicker", "").strip()
+        hero_style = normalize_hero_style(request.form.get("hero_style"))
+        highlight_quote = request.form.get("highlight_quote", "").strip()
+        summary_points = request.form.get("summary_points", "").strip()
+        cta_label = request.form.get("cta_label", "").strip()
+        cta_url = request.form.get("cta_url", "").strip()
+        meta_title = request.form.get("meta_title", "").strip()
+        meta_description = request.form.get("meta_description", "").strip()
+        featured = 1 if request.form.get("featured") else 0
 
         if not title or not excerpt or not content:
             flash("Title, excerpt, and content are required.", "error")
@@ -528,7 +689,9 @@ def register_routes(app: Flask) -> None:
             execute(
                 """
                 UPDATE posts SET title = ?, slug = ?, excerpt = ?, content = ?, cover_url = ?, tags = ?,
-                    published = ?, updated_at = ?, publish_date = ? WHERE id = ?
+                    published = ?, updated_at = ?, publish_date = ?, meta_title = ?, meta_description = ?,
+                    hero_kicker = ?, hero_style = ?, highlight_quote = ?, summary_points = ?, cta_label = ?,
+                    cta_url = ?, featured = ? WHERE id = ?
                 """,
                 (
                     title,
@@ -540,15 +703,46 @@ def register_routes(app: Flask) -> None:
                     1 if publish_state else 0,
                     now,
                     publish_date,
+                    meta_title or None,
+                    meta_description or None,
+                    hero_kicker or None,
+                    hero_style or None,
+                    highlight_quote or None,
+                    summary_points or None,
+                    cta_label or None,
+                    cta_url or None,
+                    featured,
                     existing["id"],
                 ),
             )
             flash("Post updated.", "success")
+            if action == "preview":
+                return redirect(url_for("admin_preview", post_id=existing["id"]))
             return redirect(url_for("admin_edit", post_id=existing["id"]))
         new_id = execute(
             """
-            INSERT INTO posts (title, slug, excerpt, content, cover_url, tags, published, created_at, updated_at, publish_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO posts (
+                title,
+                slug,
+                excerpt,
+                content,
+                cover_url,
+                tags,
+                published,
+                created_at,
+                updated_at,
+                publish_date,
+                meta_title,
+                meta_description,
+                hero_kicker,
+                hero_style,
+                highlight_quote,
+                summary_points,
+                cta_label,
+                cta_url,
+                featured
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 title,
@@ -561,9 +755,20 @@ def register_routes(app: Flask) -> None:
                 now,
                 now,
                 publish_date,
+                meta_title or None,
+                meta_description or None,
+                hero_kicker or None,
+                hero_style or None,
+                highlight_quote or None,
+                summary_points or None,
+                cta_label or None,
+                cta_url or None,
+                featured,
             ),
         )
         flash("Post created.", "success")
+        if action == "preview":
+            return redirect(url_for("admin_preview", post_id=new_id))
         return redirect(url_for("admin_edit", post_id=new_id))
 
     @app.route("/health")

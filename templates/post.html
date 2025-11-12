@@ -5,7 +5,10 @@
 {% if blog_json %}<script type="application/ld+json">{{ blog_json|tojson }}</script>{% endif %}
 {% endblock %}
 {% block content %}
-<article class="container article">
+{% if preview %}
+<div class="preview-banner" role="status">Preview mode — this post is visible only to admins.</div>
+{% endif %}
+<article class="container article article--theme-{{ hero_style }}">
     <nav class="breadcrumbs" aria-label="Breadcrumb">
         <ol>
             <li><a href="{{ url_for('home') }}">Home</a></li>
@@ -14,6 +17,7 @@
         </ol>
     </nav>
     <header class="article-header">
+        {% if post.hero_kicker %}<p class="kicker">{{ post.hero_kicker }}</p>{% endif %}
         <p class="muted">{{ post.publish_date|format_date }} · {{ read_time }} minute read</p>
         <h1>{{ post.title }}</h1>
         <p class="muted tags">{% for tag in post.tags|tag_list %}<span class="tag">{{ tag }}</span>{% if not loop.last %} {% endif %}{% endfor %}</p>
@@ -21,6 +25,13 @@
             <a href="https://x.com/intent/tweet?url={{ meta.canonical|urlencode }}&text={{ post.title|urlencode }}" target="_blank" rel="noopener">Share on X</a>
             <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ meta.canonical|urlencode }}&title={{ post.title|urlencode }}" target="_blank" rel="noopener">Share on LinkedIn</a>
         </div>
+        {% if summary_points %}
+        <ul class="summary-points">
+            {% for point in summary_points %}
+            <li>{{ point }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </header>
     {% set placeholder_cover = url_for('static', filename='img/blog-placeholder.svg') %}
     {% set cover = post.cover_url or placeholder_cover %}
@@ -28,6 +39,9 @@
         <span class="media-fallback" aria-hidden="true">{{ post.title[0] }}</span>
         <img src="{{ cover }}" alt="Cover image for {{ post.title }}" loading="lazy" data-fallback-image data-default-cover="{{ placeholder_cover }}" />
     </figure>
+    {% if post.highlight_quote %}
+    <blockquote class="article-quote">{{ post.highlight_quote }}</blockquote>
+    {% endif %}
     <aside class="toc" aria-label="Table of contents">
         <h2>On this page</h2>
         <nav id="toc"></nav>
@@ -35,6 +49,11 @@
     <div class="article-body" data-article-content>
         {{ post.content|safe }}
     </div>
+    {% if post.cta_label and post.cta_url %}
+    <div class="article-cta">
+        <a class="button primary" href="{{ post.cta_url }}" target="_blank" rel="noopener">{{ post.cta_label }}</a>
+    </div>
+    {% endif %}
 </article>
 <section class="container section more-posts">
     <h2>More from the blog</h2>

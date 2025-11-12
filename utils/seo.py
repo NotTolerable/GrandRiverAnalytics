@@ -60,11 +60,12 @@ def jsonld_blogposting(base_url: str, post: dict[str, Any], site_name: str, site
     publish_date = post.get("publish_date") or post.get("created_at")
     update_date = post.get("updated_at") or publish_date
     canonical = f"{base_url}/post/{post['slug']}"
+    description = post.get("meta_description") or post.get("excerpt") or site_description
     data: dict[str, Any] = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": post["title"],
-        "description": post.get("excerpt") or site_description,
+        "description": description,
         "datePublished": publish_date,
         "dateModified": update_date,
         "mainEntityOfPage": canonical,

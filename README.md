@@ -6,6 +6,7 @@ Grand River Analytics is a minimalist Flask-based publishing platform for equity
 
 - Flask + SQLite stack with seed content for five sample posts
 - Secure single-user admin with hashed password, CSRF protection, and TinyMCE editing
+- Editorial admin extras: live slug syncing, save-and-preview workflow, duplication, featured flags, and hero styling controls
 - SEO-friendly templates with canonical tags, Open Graph, Twitter cards, and JSON-LD (Organization, WebSite, Breadcrumb, BlogPosting)
 - RSS feed, XML sitemap, and robots.txt
 - Accessible, responsive front-end with vanilla CSS/JS and system font stack
@@ -47,6 +48,14 @@ Grand River Analytics is a minimalist Flask-based publishing platform for equity
 4. **Log into the admin**
 
    Visit `http://localhost:5000/admin/login` and authenticate with the configured password. From there you can create, edit, and publish posts.
+
+### Authoring research posts
+
+- **Content & metadata** – Every post captures title, slug, excerpt, TinyMCE-rendered body content, optional cover image, publish date, and tags.
+- **Display controls** – Choose a hero theme (light, slate, midnight), add an optional kicker, highlight quote, summary bullet list, and call-to-action button to tailor the article layout.
+- **SEO overrides** – Provide custom meta title/description per post when you need search-friendly copy distinct from the on-page heading.
+- **Featured placement** – Toggle the “Feature on home page” checkbox to spotlight a report in the home page carousel and add a badge on the blog index.
+- **Preview & duplication** – Use “Save & preview” for an instant draft preview in a new tab, and duplicate any entry from the dashboard to jumpstart variant write-ups.
 
 ## Testing
 
