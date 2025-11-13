@@ -20,6 +20,9 @@
     {% endif %}
     {% endif %}
     <meta name="theme-color" content="#ffffff" />
+    {% if adobe_fonts_url %}
+    <link rel="stylesheet" href="{{ adobe_fonts_url }}" />
+    {% endif %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block head_extra %}{% endblock %}

@@ -75,6 +75,7 @@ The tests instantiate the Flask app, hit key routes, and validate RSS/Sitemap re
 - Static assets live under `static/` and can be served by your front-end proxy/CDN.
 - For Replit, ensure the Run button executes `python app.py` (the default in this repo).
 - TinyMCE loads from its CDN. Provide a `TINYMCE_API_KEY` (string or JSON web key) to use the official Tiny Cloud script, or leave it blank to fall back to the open-source jsDelivr mirror. You can also point to a fully self-hosted bundle with `TINYMCE_SCRIPT_URL`.
+- To enable the Adelle Sans Thin typography, supply either `ADOBE_FONTS_KIT_ID` (for your Typekit project ID) or a direct `ADOBE_FONTS_URL`. Leaving both blank falls back to the system font stack.
 - Replace placeholder logos and imagery under `static/img/` with brand-specific assets.
 
 ### Deploying on Render (dynamic hosting)

@@ -14,26 +14,6 @@
 </section>
 <section class="section" id="reports">
     <div class="container blog-layout">
-        <aside class="blog-sidebar">
-            <div class="sidebar-card">
-                <h2>Filter reports</h2>
-                <label class="input-label" for="blog-search">Search</label>
-                <input id="blog-search" type="search" placeholder="Search titles or excerpts" data-search-input />
-                <p class="muted small">Type a ticker, theme, or keyword to narrow the list.</p>
-            </div>
-            <div class="sidebar-card">
-                <h3>Tags</h3>
-                <div class="tag-pills">
-                    <button type="button" class="tag-pill active" data-tag-filter="">All</button>
-                    {% for tag in all_tags %}
-                    <button type="button" class="tag-pill" data-tag-filter="{{ tag }}">{{ tag }}</button>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="sidebar-card muted">
-                <p><strong>Need something specific?</strong><br />Reach out via the contact page for bespoke sector analysis.</p>
-            </div>
-        </aside>
         <div class="blog-feed" data-post-list>
             {% set placeholder_cover = url_for('static', filename='img/blog-placeholder.svg') %}
             {% for post in posts %}
@@ -66,6 +46,26 @@
             <p class="muted">No posts yet. Check back soon.</p>
             {% endfor %}
             <p class="muted no-results" data-empty-state hidden>No reports match your current search.</p>
+        </div>
+        <div class="blog-filters" aria-label="Report filters">
+            <div class="filter-block">
+                <h2>Filter reports</h2>
+                <label class="input-label" for="blog-search">Search</label>
+                <input id="blog-search" type="search" placeholder="Search titles or excerpts" data-search-input />
+                <p class="muted small">Type a ticker, theme, or keyword to narrow the list.</p>
+            </div>
+            <div class="filter-block">
+                <h3>Tags</h3>
+                <div class="tag-pills">
+                    <button type="button" class="tag-pill active" data-tag-filter="">All</button>
+                    {% for tag in all_tags %}
+                    <button type="button" class="tag-pill" data-tag-filter="{{ tag }}">{{ tag }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="filter-block">
+                <p class="muted"><strong>Need something specific?</strong><br />Reach out via the contact page for bespoke sector analysis.</p>
+            </div>
         </div>
     </div>
     <div class="container">

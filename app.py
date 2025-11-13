@@ -106,6 +106,16 @@ def resolve_tinymce_assets() -> tuple[str, str]:
     return "https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js", api_key
 
 
+def resolve_adobe_fonts_url() -> str:
+    explicit_url = os.getenv("ADOBE_FONTS_URL", "").strip()
+    if explicit_url:
+        return explicit_url
+    kit_id = os.getenv("ADOBE_FONTS_KIT_ID", "").strip()
+    if kit_id:
+        return f"https://use.typekit.net/{kit_id}.css"
+    return ""
+
+
 def register_context_processors(app: Flask) -> None:
     @app.context_processor
     def inject_globals() -> dict[str, Any]:
@@ -119,6 +129,7 @@ def register_context_processors(app: Flask) -> None:
             "nav_active": lambda name: "aria-current=\"page\"" if request.endpoint == name else "",
             "tinymce_script_url": tinymce_script,
             "tinymce_api_key": tinymce_api_key,
+            "adobe_fonts_url": resolve_adobe_fonts_url(),
         }
 
 
