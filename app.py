@@ -354,7 +354,7 @@ def register_routes(app: Flask) -> None:
             {
                 "name": "Jalol Satimov",
                 "title": "Co-founder & Analyst",
-                "bio": "Currently in the Math/Business Administration Degree in the University of Waterloo.",
+                "bio": "Currently in the Math/Business Administration Program at the University of Waterloo.",
                 "photo": url_for("static", filename="img/team/defaultpfp.png"),
                 "linkedin": "https://www.linkedin.com/in/jalolsatimov/?originalSubdomain=ca",
             },
