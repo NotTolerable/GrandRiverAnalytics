@@ -132,7 +132,8 @@ ul, ol {
 
 .hero {
     padding-top: 3.5rem;
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 2.5rem;
     align-items: center;
 }
@@ -1598,8 +1599,3 @@ body.admin-shell {
     }
 }
 
-@media (min-width: 900px) {
-    .hero {
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    }
-}

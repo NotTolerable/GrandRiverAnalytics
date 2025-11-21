@@ -6,10 +6,10 @@
 {% if website_json %}<script type="application/ld+json">{{ website_json|tojson }}</script>{% endif %}
 {% endblock %}
 {% block content %}
-{% set hero_fallback = url_for('static', filename='img/home-hero-waterloo.svg') %}
-{% set hero_image = "https://images.squarespace-cdn.com/content/v1/5ae1c2b289c1729832247bf3/1538074759940-MVFMUADYF5ZSVBNUFDY7/uwaterloo-sign.jpg?format=1500w" %}
-{% set about_fallback = url_for('static', filename='img/home-quantum.svg') %}
-{% set about_image = "https://images.squarespace-cdn.com/content/v1/580fdc2ae6f2e1ef5a2b5e4f/1585930958673-HMWPF7AOLZWZJ45CFY47/Quantum-Nano+Centre+University+of+Waterloo.jpg?format=1500w" %}
+{% set hero_image = url_for('static', filename='img/home-hero-waterloo.svg') %}
+{% set hero_fallback = hero_image %}
+{% set about_image = url_for('static', filename='img/home-laurier.svg') %}
+{% set about_fallback = about_image %}
 <section class="hero">
     <div class="container narrow hero-text">
         <h1>Using rigorous qualitative techniques to produce research equity reports. The ultimate objective is to enable individuals to view professional analysis done by students of Waterloo and Laurier.</h1>
@@ -17,9 +17,11 @@
             <a class="button primary" href="{{ url_for('blog_index') }}">Learn More</a>
         </div>
     </div>
-    <div class="hero-image" data-fallback-container data-placeholder-label="University of Waterloo main entrance">
-        <span class="media-fallback" aria-hidden="true">UW</span>
-        <img src="{{ hero_image }}" alt="University of Waterloo main entrance sign" loading="lazy" data-fallback-image data-default-cover="{{ hero_fallback }}" referrerpolicy="no-referrer" />
+    <div class="container">
+        <div class="hero-image" data-fallback-container data-placeholder-label="University of Waterloo main entrance">
+            <span class="media-fallback" aria-hidden="true">UW</span>
+            <img src="{{ hero_image }}" alt="University of Waterloo main entrance" loading="lazy" data-fallback-image data-default-cover="{{ hero_fallback }}" />
+        </div>
     </div>
 </section>
 <section class="section latest-section">
@@ -61,9 +63,9 @@
         <p><strong>Grand River Analytics</strong> is a student-run financial publishing website, focused on showcasing qualitative techniques through equity reports. The goal is to provide an outlet to clearly display our technical analysis skills to future employers or those similarly interested in the topic.</p>
         <p>The name <strong>Grand River Analytics</strong> originates from the Grand River, a river which flows through both the universities of Waterloo and Laurier, the place of study for both members of the team.</p>
     </div>
-    <div class="feature-image" data-fallback-container data-placeholder-label="University of Waterloo Quantum-Nano Centre">
-        <span class="media-fallback" aria-hidden="true">QNC</span>
-        <img src="{{ about_image }}" alt="University of Waterloo Quantum-Nano Centre" loading="lazy" data-fallback-image data-default-cover="{{ about_fallback }}" referrerpolicy="no-referrer" />
+    <div class="feature-image" data-fallback-container data-placeholder-label="Wilfrid Laurier University stadium">
+        <span class="media-fallback" aria-hidden="true">WLU</span>
+        <img src="{{ about_image }}" alt="Wilfrid Laurier University stadium" loading="lazy" data-fallback-image data-default-cover="{{ about_fallback }}" />
     </div>
 </section>
 <section class="section cta-section">
