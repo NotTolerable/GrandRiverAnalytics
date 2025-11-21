@@ -85,7 +85,7 @@ def get_settings() -> dict[str, Any]:
     else:
         settings = {
             "site_name": "Grand River Analytics",
-            "site_description": "Independent equity research across financials, technology, and consumer sectors.",
+            "site_description": "Independent equity research across global markets.",
             "base_url": os.getenv("BASE_URL", "http://localhost:5000"),
         }
     g._settings = settings  # type: ignore[attr-defined]
@@ -352,25 +352,25 @@ def register_routes(app: Flask) -> None:
         website_json = seo.jsonld_website_search(settings["base_url"])
         team_members = [
             {
-                "name": "Alex Morgan",
-                "title": "Founder & Lead Analyst",
-                "bio": "Covers U.S. financials with a focus on bank asset sensitivity and fintech disruption.",
-                "photo": url_for("static", filename="img/team/alex-morgan.svg"),
-                "linkedin": "https://www.linkedin.com/",
+                "name": "Jalol Satimov",
+                "title": "Co-founder & Analyst",
+                "bio": "Currently in the Math/Business Administration Degree in the University of Waterloo.",
+                "photo": url_for("static", filename="img/team/jalol_satimov.png"),
+                "linkedin": "https://www.linkedin.com/in/jalolsatimov/?originalSubdomain=ca",
             },
             {
-                "name": "Priya Desai",
-                "title": "Technology Strategist",
-                "bio": "Analyzes enterprise software and AI monetization frameworks across hyperscalers.",
-                "photo": url_for("static", filename="img/team/priya-desai.svg"),
-                "linkedin": "https://www.linkedin.com/",
+                "name": "Harry Zhu",
+                "title": "Co-founder & Analyst",
+                "bio": "Pursuing a Business Administration (BBA) + Financial Mathematics and Analytics at the University of Laurier.",
+                "photo": url_for("static", filename="img/team/harry_zhu.png"),
+                "linkedin": "https://www.linkedin.com/in/harryzhupengzhao/",
             },
             {
-                "name": "Ethan Clarke",
-                "title": "Energy & Industrials Analyst",
-                "bio": "Frames upstream capital allocation and energy transition implications for integrated majors.",
+                "name": "Babisan Pirapakaran",
+                "title": "Full Stack Developer",
+                "bio": "Currently in the Math Faculty, pursuing a degree in Mathematics at the University of Waterloo.",
                 "photo": url_for("static", filename="img/team/ethan-clarke.svg"),
-                "linkedin": "https://www.linkedin.com/",
+                "linkedin": "www.linkedin.com/in/babisan-pirapakaran-1bb725377",
             },
         ]
         return render_template(
