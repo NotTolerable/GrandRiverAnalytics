@@ -39,6 +39,19 @@ def create_app() -> Flask:
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", os.urandom(24))
     app.config["BASE_URL"] = os.getenv("BASE_URL", "http://localhost:5000")
+    max_form_mb = os.getenv("MAX_FORM_MEMORY_MB", "").strip()
+    if max_form_mb:
+        try:
+            max_form_bytes = int(float(max_form_mb) * 1024 * 1024)
+        except ValueError:
+            app.logger.warning("MAX_FORM_MEMORY_MB is not a number; ignoring override.")
+            max_form_bytes = 0
+    else:
+        max_form_bytes = 50 * 1024 * 1024
+
+    if max_form_bytes:
+        app.config["MAX_FORM_MEMORY_SIZE"] = max_form_bytes
+        app.config["MAX_CONTENT_LENGTH"] = max_form_bytes
     admin_hash, used_default_password = ensure_admin_password()
     app.config["ADMIN_PASSWORD_HASH"] = admin_hash
 
@@ -354,7 +367,7 @@ def register_routes(app: Flask) -> None:
             },
             {
                 "name": "Babisan Pirapakaran",
-                "title": "Front-end and Back-end",
+                "title": "Full Stack Developer",
                 "bio": "Currently in the Math Faculty, pursuing a degree in Mathematics at the University of Waterloo.",
                 "photo": url_for("static", filename="img/team/ethan-clarke.svg"),
                 "linkedin": "www.linkedin.com/in/babisan-pirapakaran-1bb725377",
