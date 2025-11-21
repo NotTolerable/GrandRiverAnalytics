@@ -342,7 +342,7 @@ def register_routes(app: Flask) -> None:
                 "name": "Jalol Satimov",
                 "title": "Co-founder & Analyst",
                 "bio": "Currently in the Math/Business Administration Degree in the University of Waterloo.",
-                "photo": url_for("static", filename="https://media.licdn.com/dms/image/v2/D4D03AQGJMNn86FIJDQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1730947818851?e=1765411200&v=beta&t=gWf8GrJ2xwTV7z4XAbWSfTed-XjlEdhidYmLue2QY0U"),
+                "photo": url_for("static", filename="img/team/alex-morgan.svg"),
                 "linkedin": "https://www.linkedin.com/in/jalolsatimov/?originalSubdomain=ca",
             },
             {
